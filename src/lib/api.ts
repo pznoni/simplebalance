@@ -11,9 +11,14 @@ export function traduz(msg: string): string {
   if (/Failed to fetch|NetworkError|Load failed/i.test(msg)) return 'Sem conexão. Tente de novo.';
   if (/Invalid login credentials/i.test(msg)) return 'E-mail ou senha incorretos.';
   if (/already registered/i.test(msg)) return 'Esse e-mail já tem conta. Use "Entrar".';
-  if (/Password should be/i.test(msg)) return 'A senha precisa ter pelo menos 6 caracteres.';
+  if (/Password should|weak.?password|password.*(characters|length)/i.test(msg)) return 'Senha fraca: use pelo menos 10 caracteres, com letras e números.';
+  if (/Email not confirmed/i.test(msg)) return 'Confirme seu e-mail pelo link que enviamos antes de entrar.';
+  if (/rate limit|too many/i.test(msg)) return 'Muitas tentativas. Espere alguns minutos e tente de novo.';
   if (/JWT|session/i.test(msg)) return 'Sua sessão expirou. Entre de novo.';
-  return msg;
+  if (/^Limite de \d+ registros atingido\.$/.test(msg)) return msg;
+  // Não mostra detalhes internos do banco na tela; ficam só no console.
+  console.error(msg);
+  return 'Algo deu errado. Tente de novo.';
 }
 
 function fail(error: { message: string } | null): void {

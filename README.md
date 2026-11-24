@@ -52,6 +52,18 @@ e depois `npm run db:types`.
 3. `npx supabase db push` para aplicar as migrações.
 4. Use a URL e a publishable/anon key do projeto no `.env` (ou nas variáveis do host do front).
 
+## Segurança
+
+- **Chaves:** só a publishable key vai para o front (é pública por design). A secret key nunca entra
+  no código; `.env` é ignorado pelo git e as variáveis do deploy ficam em Settings → Variables.
+- **Banco:** RLS em todas as tabelas; a API só grava as colunas do app (dono, id e datas vêm do banco);
+  limites de valor, data, tamanho de texto e de registros por usuário; funções internas fora da API.
+- **Front:** React escapa todo texto (sem HTML cru); Content Security Policy no build (scripts só do
+  site, conexões só com o Supabase); sem sourcemaps; erros do banco não aparecem na tela.
+- **Login:** senha mínima de 10 caracteres com letras e números, confirmação de e-mail, limites de
+  tentativas do Supabase Auth.
+- **Dependências:** Dependabot semanal (npm e actions) e `npm audit` sem vulnerabilidades.
+
 ## Estrutura
 
 ```

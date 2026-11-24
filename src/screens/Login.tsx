@@ -37,7 +37,7 @@ export function Login() {
             type="password"
             autoComplete={mode === 'entrar' ? 'current-password' : 'new-password'}
             required
-            minLength={6}
+            minLength={mode === 'criar' ? 10 : undefined}
             value={senha}
             onChange={(e) => setSenha(e.target.value)}
           />
