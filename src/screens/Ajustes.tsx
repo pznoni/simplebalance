@@ -29,22 +29,47 @@ export function Ajustes({ email, cats, onChanged, toast }: Props) {
     }
   };
 
-  const backup = async () => {
+  // Backup em dois toques: o navegador só abre a folha de compartilhar logo após um toque,
+  // e buscar os dados antes disso faz ele recusar ("Permission denied").
+  const [backupFile, setBackupFile] = useState<File | null>(null);
+  const [preparing, setPreparing] = useState(false);
+
+  const prepararBackup = async () => {
+    setPreparing(true);
     try {
       const json = await api.exportarBackup();
-      const file = new File([json], `simplebalance-${todayISO()}.json`, { type: 'application/json' });
-      // No iPhone, a folha de compartilhar permite "Salvar em Arquivos".
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file] });
-      } else {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(file);
-        a.download = file.name;
-        a.click();
-        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-      }
+      setBackupFile(new File([json], `simplebalance-${todayISO()}.json`, { type: 'application/json' }));
     } catch (err) {
-      if ((err as Error).name !== 'AbortError') toast((err as Error).message, 'error');
+      toast((err as Error).message, 'error');
+    } finally {
+      setPreparing(false);
+    }
+  };
+
+  const baixar = (file: File) => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(file);
+    a.download = file.name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+
+  const salvarBackup = () => {
+    const file = backupFile;
+    if (!file) return;
+    // Chamado direto no toque. No iPhone, a folha de compartilhar tem "Salvar em Arquivos".
+    if (navigator.canShare?.({ files: [file] })) {
+      navigator.share({ files: [file] }).then(
+        () => setBackupFile(null),
+        (err: Error) => {
+          if (err.name === 'AbortError') return; // usuário fechou a folha
+          baixar(file);
+          setBackupFile(null);
+        },
+      );
+    } else {
+      baixar(file);
+      setBackupFile(null);
     }
   };
 
@@ -118,9 +143,16 @@ export function Ajustes({ email, cats, onChanged, toast }: Props) {
       <section className="card list-card">
         <ul className="rows">
           <li>
-            <button type="button" className="row as-button" onClick={backup}>
-              <span className="row-title">Exportar backup (JSON)</span>
-            </button>
+            {backupFile ? (
+              <button type="button" className="row as-button" onClick={salvarBackup}>
+                <span className="row-title">Salvar backup</span>
+                <span className="muted small">{backupFile.name}</span>
+              </button>
+            ) : (
+              <button type="button" className="row as-button" onClick={prepararBackup} disabled={preparing}>
+                <span className="row-title">{preparing ? 'Preparando backup…' : 'Exportar backup (JSON)'}</span>
+              </button>
+            )}
           </li>
           <li>
             <button type="button" className="row as-button" onClick={() => void supabase.auth.signOut()}>
