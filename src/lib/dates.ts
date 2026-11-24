@@ -69,5 +69,3 @@ export function dayHeader(iso: string, today = todayISO()): string {
   return `${wd.charAt(0).toUpperCase()}${wd.slice(1)}, ${d} ${(MESES[m - 1] ?? '').slice(0, 3)}`;
 }
 
-/** "2026-11-20" → "20/11" */
-export const formatDateShort = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
