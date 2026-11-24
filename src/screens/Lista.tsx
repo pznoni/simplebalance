@@ -1,7 +1,7 @@
 import { Fragment, useState } from 'react';
 import * as api from '../lib/api';
 import { resumo } from '../lib/calc';
-import { addMonths, dayHeader, formatDateShort, monthName } from '../lib/dates';
+import { addMonths, dayHeader, monthName } from '../lib/dates';
 import { formatBRL } from '../lib/money';
 import { PAGAMENTO_LABEL, TIPO_LABEL, statusLabel, type Categoria, type Lancamento, type Tipo } from '../lib/types';
 import { BackHeader, PrevReal, Segmented, StatusCircle } from '../components/ui';
@@ -102,7 +102,6 @@ export function Lista({ tipo, month, lancs, cats, loading, onToggle, onNew, onEd
                     <span className="row-title">{l.descricao}</span>
                     <span className="row-sub">
                       {[
-                        tipo === 'fixo' ? `vence ${formatDateShort(l.data)}` : null,
                         (l.categoria_id && catNome.get(l.categoria_id)) || 'Sem categoria',
                         PAGAMENTO_LABEL[l.pagamento],
                         statusLabel(l),
