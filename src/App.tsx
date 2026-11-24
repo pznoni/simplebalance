@@ -35,6 +35,15 @@ function readMonth(): string {
 }
 
 export function App() {
+  return (
+    <>
+      <Root />
+      <UpdatePrompt />
+    </>
+  );
+}
+
+function Root() {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
 
   useEffect(() => {
@@ -155,7 +164,6 @@ function Shell({ email }: { email: string }) {
         toast={toast.show}
       />
       <Toast {...toast.props} />
-      <UpdatePrompt />
     </>
   );
 }

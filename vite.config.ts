@@ -2,7 +2,9 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig({
+// No GitHub Pages o app fica em https://pznoni.github.io/simplebalance/
+export default defineConfig(({ command, isPreview }) => ({
+  base: command === 'build' || isPreview ? '/simplebalance/' : '/',
   plugins: [
     react(),
     VitePWA({
@@ -24,4 +26,4 @@ export default defineConfig({
       },
     }),
   ],
-});
+}));
