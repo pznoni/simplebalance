@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import * as api from '../lib/api';
 import { currentMonth, todayISO } from '../lib/dates';
-import { centsToInput, formatBRL, parseMoney } from '../lib/money';
+import { centsToInput, diffLabel, formatBRL, parseMoney } from '../lib/money';
 import type { Categoria, Lancamento, Pagamento, Tipo } from '../lib/types';
 import { Sheet } from './Sheet';
 import { Segmented } from './ui';
@@ -78,6 +78,7 @@ function Form({
   const [pagamento, setPagamento] = useState<Pagamento>(e?.pagamento ?? 'debito');
   const [data, setData] = useState(e?.data ?? defaultDate(month));
   const [resolvido, setResolvido] = useState(e?.resolvido ?? false);
+  const [valorReal, setValorReal] = useState(e?.valor_real != null ? centsToInput(e.valor_real) : '');
   const [novaCat, setNovaCat] = useState<string | null>(null);
   const [erro, setErro] = useState('');
   const [busy, setBusy] = useState(false);
@@ -92,17 +93,21 @@ function Form({
   }, [e]);
 
   const cents = parseMoney(valor);
+  const realCents = parseMoney(valorReal);
 
   const submit = async (ev: FormEvent) => {
     ev.preventDefault();
     if (!(cents > 0)) return setErro('Digite um valor maior que zero.');
     if (!descricao.trim()) return setErro('Digite uma descrição.');
     if (!data) return setErro(`Escolha ${tipo === 'fixo' ? 'o vencimento' : 'a data'}.`);
+    if (resolvido && valorReal.trim() !== '' && !(realCents > 0)) return setErro('Valor real inválido. Deixe vazio se foi igual ao previsto.');
+    // Vazio ou igual ao previsto: não guarda (vale o previsto).
+    const valor_real = resolvido && realCents > 0 && realCents !== cents ? realCents : null;
     setErro('');
     setBusy(true);
     try {
       await api.salvarLancamento(
-        { tipo, valor: cents, descricao: descricao.trim(), data, categoria_id: categoriaId, pagamento, resolvido },
+        { tipo, valor: cents, valor_real, descricao: descricao.trim(), data, categoria_id: categoriaId, pagamento, resolvido },
         e?.id,
       );
       if (data.slice(0, 7) !== month) toast(`Salvo em ${data.slice(8, 10)}/${data.slice(5, 7)}, fora do mês em exibição.`);
@@ -144,7 +149,7 @@ function Form({
       <Segmented label="Tipo" value={tipo} options={TIPOS} onChange={setTipo} />
 
       <label className="amount">
-        <span className="visually-hidden">Valor</span>
+        <span className="visually-hidden">Valor previsto</span>
         <span className="amount-prefix">R$</span>
         <input
           ref={valorRef}
@@ -156,7 +161,7 @@ function Form({
           aria-invalid={valor !== '' && !(cents > 0)}
         />
       </label>
-      {valor !== '' && cents > 0 && <p className="amount-echo muted small">{formatBRL(cents)}</p>}
+      <p className="amount-echo muted small">{valor !== '' && cents > 0 ? `Previsto: ${formatBRL(cents)}` : 'Valor previsto'}</p>
 
       <label className="field">
         <span>Descrição</span>
@@ -219,6 +224,22 @@ function Form({
         <span>{pagamento === 'debito' ? 'Já pago?' : 'Já caiu na fatura?'}</span>
         <input type="checkbox" role="switch" className="switch" checked={resolvido} onChange={(ev) => setResolvido(ev.target.checked)} />
       </label>
+
+      {resolvido && (
+        <label className="field">
+          <span>Valor real {pagamento === 'debito' ? '(quanto foi pago)' : '(quanto caiu)'}</span>
+          <input
+            inputMode="decimal"
+            value={valorReal}
+            placeholder={cents > 0 ? `${centsToInput(cents)} (igual ao previsto)` : 'Igual ao previsto'}
+            onChange={(ev) => setValorReal(ev.target.value)}
+            aria-invalid={valorReal.trim() !== '' && !(realCents > 0)}
+          />
+          {realCents > 0 && cents > 0 && realCents !== cents && (
+            <span className="muted small">{diffLabel(realCents - cents)}</span>
+          )}
+        </label>
+      )}
 
       {erro && <p className="error-text">{erro}</p>}
 

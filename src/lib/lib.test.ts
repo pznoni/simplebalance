@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { parseMoney, formatBRL, centsToInput } from './money';
+import { parseMoney, formatBRL, centsToInput, diffLabel } from './money';
 import { addMonths, dateInMonth, dayHeader, monthRange, monthTitle } from './dates';
-import { porCategoria, resumo } from './calc';
+import { porCategoria, resumo, valorEfetivo } from './calc';
 import { statusLabel, type Lancamento } from './types';
 
 const l = (p: Partial<Lancamento>): Lancamento => ({
   id: Math.random().toString(36),
   tipo: 'variavel',
   valor: 100,
+  valor_real: null,
   descricao: 'x',
   data: '2026-11-10',
   categoria_id: null,
@@ -28,6 +29,11 @@ describe('money', () => {
   it('formata e volta para o input', () => {
     expect(formatBRL(123456).replace(/\s/g, ' ')).toBe('R$ 1.234,56');
     expect(centsToInput(123405)).toBe('1234,05');
+  });
+
+  it('descreve a diferença entre real e previsto', () => {
+    expect(diffLabel(-1300).replace(/\s/g, ' ')).toBe('R$ 13,00 abaixo do previsto');
+    expect(diffLabel(50).replace(/\s/g, ' ')).toBe('R$ 0,50 acima do previsto');
   });
 });
 
@@ -52,7 +58,21 @@ describe('dates', () => {
 describe('calc', () => {
   it('previsão = tudo, real = resolvidos, falta = diferença', () => {
     const r = resumo([l({ valor: 1000, resolvido: true }), l({ valor: 250 }), l({ valor: 50, pagamento: 'credito', resolvido: true })]);
-    expect(r).toEqual({ previsao: 1300, real: 1050, falta: 250 });
+    expect(r).toEqual({ previsao: 1300, real: 1050, falta: 250, diferenca: 0 });
+  });
+  it('real usa o valor que caiu; falta só conta pendentes; diferença = real − previsto dos resolvidos', () => {
+    const r = resumo([
+      l({ valor: 20000, valor_real: 18700, resolvido: true }), // luz veio menor
+      l({ valor: 5000, valor_real: 5500, resolvido: true }), // veio maior
+      l({ valor: 3000, resolvido: true }), // sem valor real: igual ao previsto
+      l({ valor: 1000, valor_real: 900 }), // pendente: valor real ignorado
+    ]);
+    expect(r).toEqual({ previsao: 29000, real: 27200, falta: 1000, diferenca: -800 });
+  });
+  it('valor efetivo: real se resolvido e informado, senão o previsto', () => {
+    expect(valorEfetivo(l({ valor: 100, valor_real: 90, resolvido: true }))).toBe(90);
+    expect(valorEfetivo(l({ valor: 100, valor_real: 90 }))).toBe(100);
+    expect(valorEfetivo(l({ valor: 100, resolvido: true }))).toBe(100);
   });
   it('por categoria, do maior para o menor, com "Sem categoria"', () => {
     const cats = [{ id: 'a', nome: 'Mercado', ordem: 1 }, { id: 'b', nome: 'Lazer', ordem: 2 }];

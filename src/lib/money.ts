@@ -42,6 +42,11 @@ export function parseMoney(input: string): number {
   return Number.isSafeInteger(cents) ? cents : NaN;
 }
 
+/** Diferença real − previsto: -1300 → "R$ 13,00 abaixo do previsto". */
+export function diffLabel(diff: number): string {
+  return `${formatBRL(Math.abs(diff))} ${diff < 0 ? 'abaixo' : 'acima'} do previsto`;
+}
+
 /** Centavos → texto editável "1234,56". */
 export function centsToInput(cents: number): string {
   return `${Math.floor(cents / 100)},${String(cents % 100).padStart(2, '0')}`;
