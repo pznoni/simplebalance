@@ -120,12 +120,6 @@ export function Inicio({ month, setMonth, lancs, cats, loading }: Props) {
           </ul>
         )}
       </section>
-
-      <footer className="page-foot">
-        <button type="button" className="link" onClick={() => go('#/ajustes')}>
-          Ajustes
-        </button>
-      </footer>
     </main>
   );
 }

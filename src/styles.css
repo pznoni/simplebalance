@@ -163,7 +163,6 @@ button:disabled { opacity: 0.5; cursor: default; }
 .head-actions { display: flex; align-items: center; }
 .eye svg { width: 24px; height: 24px; }
 
-.page-foot { display: flex; justify-content: center; padding-top: 10px; }
 
 /* ---------- Cartões ---------- */
 .card {
