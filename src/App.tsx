@@ -5,6 +5,7 @@ import * as api from './lib/api';
 import { currentMonth, getFechamento, setFechamento } from './lib/dates';
 import { fechamentoEmCache, lerFechamento } from './lib/prefs';
 import { PrivacyProvider } from './lib/privacy';
+import { VisaoProvider } from './lib/visao';
 import type { Categoria, Lancamento, Tipo } from './lib/types';
 import { Login } from './screens/Login';
 import { Inicio } from './screens/Inicio';
@@ -81,7 +82,9 @@ function Root() {
   if (!session) return <Login />;
   return (
     <PrivacyProvider key={session.user.id}>
-      <Shell email={session.user.email ?? ''} />
+      <VisaoProvider>
+        <Shell email={session.user.email ?? ''} />
+      </VisaoProvider>
     </PrivacyProvider>
   );
 }

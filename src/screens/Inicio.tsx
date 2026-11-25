@@ -3,7 +3,8 @@ import { porCategoria, resumo } from '../lib/calc';
 import { usePrivacy } from '../lib/privacy';
 import { useRenda } from '../lib/prefs';
 import type { Categoria, Lancamento, Tipo } from '../lib/types';
-import { Bar, EyeToggle, PrevReal, ThemeToggle } from '../components/ui';
+import { Bar, EyeToggle, PrevReal, ThemeToggle, VisaoToggle } from '../components/ui';
+import { useVisao } from '../lib/visao';
 import { go, goCategoria } from '../lib/nav';
 
 interface Props {
@@ -22,6 +23,7 @@ export function Inicio({ month, setMonth, lancs, cats, loading }: Props) {
   const maxCat = categorias[0]?.valor ?? 0;
   const { money } = usePrivacy();
   const renda = useRenda();
+  const { mostraPrevisto, mostraReal } = useVisao();
 
   return (
     <main className={`page ${loading ? 'is-loading' : ''}`}>
@@ -31,6 +33,7 @@ export function Inicio({ month, setMonth, lancs, cats, loading }: Props) {
             <path d="M5 20v-8M12 20V5M19 20v-11" />
           </svg>
         </button>
+        <VisaoToggle />
         <ThemeToggle />
         <EyeToggle />
         <button type="button" className="eye" aria-label="Ajustes" onClick={() => go('#/ajustes')}>
@@ -79,9 +82,9 @@ export function Inicio({ month, setMonth, lancs, cats, loading }: Props) {
         )}
         {renda != null ? (
           <div className="sobra">
-            <div className="prev-real is-compact">
-              <Sobra label="Sobra prevista" valor={renda - total.previsao} />
-              <Sobra label="Sobra real" valor={renda - total.real} />
+            <div className={`prev-real is-compact ${mostraPrevisto && mostraReal ? '' : 'is-single'}`}>
+              {mostraPrevisto && <Sobra label="Sobra prevista" valor={renda - total.previsao} />}
+              {mostraReal && <Sobra label="Sobra real" valor={renda - total.real} />}
             </div>
           </div>
         ) : (

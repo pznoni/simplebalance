@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { usePrivacy } from '../lib/privacy';
 import { useTheme } from '../lib/theme';
+import { useVisao, type Visao } from '../lib/visao';
 
 export function Segmented<T extends string>({
   value,
@@ -96,19 +97,41 @@ export function ThemeToggle() {
 /** Par Previsão / Real lado a lado. */
 export function PrevReal({ previsao, real, compact = false }: { previsao: number; real: number; compact?: boolean }) {
   const { money } = usePrivacy();
+  const { mostraPrevisto, mostraReal } = useVisao();
   return (
-    <div className={`prev-real ${compact ? 'is-compact' : ''}`}>
-      <div className="stat">
-        <span className="stat-label">Previsão</span>
-        <span className="stat-value">{money(previsao)}</span>
-        {!compact && <span className="stat-hint">tudo lançado</span>}
-      </div>
-      <div className="stat">
-        <span className="stat-label">Real</span>
-        <span className="stat-value">{money(real)}</span>
-        {!compact && <span className="stat-hint">já caiu</span>}
-      </div>
+    <div className={`prev-real ${compact ? 'is-compact' : ''} ${mostraPrevisto && mostraReal ? '' : 'is-single'}`}>
+      {mostraPrevisto && (
+        <div className="stat">
+          <span className="stat-label">Previsão</span>
+          <span className="stat-value">{money(previsao)}</span>
+          {!compact && <span className="stat-hint">tudo lançado</span>}
+        </div>
+      )}
+      {mostraReal && (
+        <div className="stat">
+          <span className="stat-label">Real</span>
+          <span className="stat-value">{money(real)}</span>
+          {!compact && <span className="stat-hint">já caiu</span>}
+        </div>
+      )}
     </div>
+  );
+}
+
+const VISAO_ROTULO: Record<Visao, { tag: string; nome: string }> = {
+  ambos: { tag: 'P·R', nome: 'previsto e real' },
+  real: { tag: 'R', nome: 'só real' },
+  previsto: { tag: 'P', nome: 'só previsto' },
+};
+
+/** Alterna o que os quadros mostram: previsto e real → só real → só previsto. */
+export function VisaoToggle() {
+  const { visao, avancar } = useVisao();
+  const { tag, nome } = VISAO_ROTULO[visao];
+  return (
+    <button type="button" className="eye visao-toggle" aria-label={`Mostrando ${nome}. Tocar para trocar.`} onClick={avancar}>
+      <span aria-hidden="true">{tag}</span>
+    </button>
   );
 }
 

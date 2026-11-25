@@ -475,3 +475,7 @@ body.has-sheet .toast { bottom: auto; top: calc(var(--safe-top) + 12px); }
   padding: 8px 0;
 }
 .row-edit .renda-input:focus { color: var(--text); }
+
+/* Botão Previsto/Real e quadros com um valor só */
+.visao-toggle span { font-size: 13px; font-weight: 700; letter-spacing: 0.02em; font-variant-numeric: tabular-nums; }
+.prev-real.is-single { grid-template-columns: 1fr; }
