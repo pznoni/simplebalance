@@ -1,6 +1,6 @@
 // Estatísticas: comparações entre meses, categorias e previsto × real.
 import { valorEfetivo } from './calc';
-import { addMonths } from './dates';
+import { addMonths, periodOf } from './dates';
 import type { Categoria, Lancamento } from './types';
 
 export interface Mes {
@@ -19,7 +19,7 @@ export function mesesAte(ym: string, n: number): string[] {
 export function porMes(list: readonly Lancamento[], meses: readonly string[]): Mes[] {
   const map = new Map(meses.map((ym) => [ym, { ym, previsto: 0, real: 0, fixo: 0, variavel: 0 }]));
   for (const l of list) {
-    const m = map.get(l.data.slice(0, 7));
+    const m = map.get(periodOf(l.data));
     if (!m) continue;
     const v = valorEfetivo(l);
     m.previsto += l.valor;
@@ -60,7 +60,7 @@ export function compararCategorias(
   const nomes = new Map(categorias.map((c) => [c.id, c.nome]));
   const totais = new Map<string | null, { atual: number; anterior: number }>();
   for (const l of list) {
-    const mes = l.data.slice(0, 7);
+    const mes = periodOf(l.data);
     if (mes !== ym && mes !== ant) continue;
     const key = l.categoria_id && nomes.has(l.categoria_id) ? l.categoria_id : null;
     const t = totais.get(key) ?? { atual: 0, anterior: 0 };
@@ -87,7 +87,7 @@ export interface ResumoDiferencas {
 
 /** Previsto × real dos lançamentos resolvidos de `ym`. */
 export function diferencas(list: readonly Lancamento[], ym: string): ResumoDiferencas {
-  const resolvidos = list.filter((l) => l.resolvido && l.data.slice(0, 7) === ym);
+  const resolvidos = list.filter((l) => l.resolvido && periodOf(l.data) === ym);
   const itens = resolvidos
     .map((lanc) => ({ lanc, delta: valorEfetivo(lanc) - lanc.valor }))
     .filter((d) => d.delta !== 0)
