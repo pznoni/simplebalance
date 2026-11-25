@@ -13,7 +13,7 @@ export interface Lancamento {
   valor: number; // previsto, em centavos
   valor_real: number | null; // o que de fato caiu/foi pago; null = igual ao previsto
   descricao: string;
-  data: string; // AAAA-MM-DD (em fixo é o vencimento)
+  data: string; // AAAA-MM-DD (em fixo só define o mês; não aparece na tela)
   categoria_id: string | null;
   pagamento: Pagamento;
   resolvido: boolean; // crédito: caiu / débito: pago

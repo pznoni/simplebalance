@@ -99,7 +99,9 @@ function Form({
     ev.preventDefault();
     if (!(cents > 0)) return setErro('Digite um valor maior que zero.');
     if (!descricao.trim()) return setErro('Digite uma descrição.');
-    if (!data) return setErro(`Escolha ${tipo === 'fixo' ? 'o vencimento' : 'a data'}.`);
+    // Fixo não mostra data: novo entra no mês em exibição; editado mantém a data que tinha.
+    const dataFinal = tipo === 'fixo' && !e && data.slice(0, 7) !== month ? defaultDate(month) : data;
+    if (!dataFinal) return setErro('Escolha a data.');
     if (resolvido && valorReal.trim() !== '' && !(realCents > 0)) return setErro('Valor real inválido. Deixe vazio se foi igual ao previsto.');
     // Vazio ou igual ao previsto: não guarda (vale o previsto).
     const valor_real = resolvido && realCents > 0 && realCents !== cents ? realCents : null;
@@ -107,10 +109,10 @@ function Form({
     setBusy(true);
     try {
       await api.salvarLancamento(
-        { tipo, valor: cents, valor_real, descricao: descricao.trim(), data, categoria_id: categoriaId, pagamento, resolvido },
+        { tipo, valor: cents, valor_real, descricao: descricao.trim(), data: dataFinal, categoria_id: categoriaId, pagamento, resolvido },
         e?.id,
       );
-      if (data.slice(0, 7) !== month) toast(`Salvo em ${data.slice(8, 10)}/${data.slice(5, 7)}, fora do mês em exibição.`);
+      if (dataFinal.slice(0, 7) !== month) toast(`Salvo em ${dataFinal.slice(8, 10)}/${dataFinal.slice(5, 7)}, fora do mês em exibição.`);
       onSaved();
     } catch (err) {
       setErro((err as Error).message);
@@ -215,10 +217,12 @@ function Form({
         <Segmented label="Pagamento" value={pagamento} options={PAGAMENTOS} onChange={setPagamento} />
       </div>
 
-      <label className="field">
-        <span>{tipo === 'fixo' ? 'Vencimento' : 'Data'}</span>
-        <input type="date" value={data} required onChange={(ev) => setData(ev.target.value)} />
-      </label>
+      {tipo === 'variavel' && (
+        <label className="field">
+          <span>Data</span>
+          <input type="date" value={data} required onChange={(ev) => setData(ev.target.value)} />
+        </label>
+      )}
 
       <label className="switch-row">
         <span>{pagamento === 'debito' ? 'Já pago?' : 'Já caiu na fatura?'}</span>

@@ -47,8 +47,8 @@ export function Lista({ tipo, month, lancs, cats, loading, onToggle, onNew, onEd
   const grupos: Grupo[] =
     tipo === 'fixo'
       ? [
-          { key: 'p', titulo: 'Pendentes', itens: visiveis.filter((l) => !l.resolvido).sort(porVencimento) },
-          { key: 'r', titulo: 'Resolvidos', itens: visiveis.filter((l) => l.resolvido).sort(porVencimento) },
+          { key: 'p', titulo: 'Pendentes', itens: visiveis.filter((l) => !l.resolvido).sort(porDescricao) },
+          { key: 'r', titulo: 'Resolvidos', itens: visiveis.filter((l) => l.resolvido).sort(porDescricao) },
         ].filter((g) => g.itens.length)
       : porDia(visiveis);
 
@@ -147,7 +147,7 @@ export function Lista({ tipo, month, lancs, cats, loading, onToggle, onNew, onEd
   );
 }
 
-const porVencimento = (a: Lancamento, b: Lancamento) => a.data.localeCompare(b.data) || a.descricao.localeCompare(b.descricao, 'pt-BR');
+const porDescricao = (a: Lancamento, b: Lancamento) => a.descricao.localeCompare(b.descricao, 'pt-BR');
 
 /** Variável: blocos por dia, do mais recente para o mais antigo. */
 function porDia(list: Lancamento[]): Grupo[] {
