@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { configured, supabase } from './lib/supabase';
 import * as api from './lib/api';
-import { currentMonth } from './lib/dates';
+import { currentMonth, getFechamento, setFechamento } from './lib/dates';
+import { fechamentoEmCache, lerFechamento } from './lib/prefs';
 import { PrivacyProvider } from './lib/privacy';
 import type { Categoria, Lancamento, Tipo } from './lib/types';
 import { Login } from './screens/Login';
@@ -75,6 +76,12 @@ function Root() {
 
 function Shell({ email }: { email: string }) {
   const [route, setRoute] = useState<Route>(parseHash);
+  // Dia de fechamento: começa pelo último valor deste aparelho e depois confirma no Supabase.
+  const [fech, setFech] = useState<number | null>(() => {
+    const dia = fechamentoEmCache();
+    setFechamento(dia);
+    return dia;
+  });
   const [month, setMonthState] = useState(readMonth);
   const [lancs, setLancs] = useState<Lancamento[] | null>(null);
   const [cats, setCats] = useState<Categoria[]>([]);
@@ -99,6 +106,24 @@ function Shell({ email }: { email: string }) {
     }
   };
 
+  /** Novo dia de fechamento: recalcula os ciclos e vai para o mês em andamento. */
+  const aplicarFechamento = (dia: number | null) => {
+    setFechamento(dia);
+    setFech(dia);
+    setMonth(currentMonth());
+  };
+
+  useEffect(() => {
+    lerFechamento()
+      .then((dia) => {
+        if (dia !== getFechamento()) aplicarFechamento(dia);
+      })
+      .catch(() => {
+        /* sem rede: segue com o valor deste aparelho */
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const reload = useCallback(async () => {
     try {
       const [l, c] = await Promise.all([api.listarMes(month), api.listarCategorias()]);
@@ -107,7 +132,7 @@ function Shell({ email }: { email: string }) {
     } catch (err) {
       toast.show((err as Error).message, 'error');
     }
-  }, [month, toast]);
+  }, [month, fech, toast]); // fech muda o período buscado
 
   useEffect(() => {
     setLancs(null);
@@ -156,7 +181,7 @@ function Shell({ email }: { email: string }) {
       )}
       {route.name === 'estatisticas' && <Estatisticas month={month} cats={cats} toast={toast.show} />}
       {route.name === 'ajustes' && (
-        <Ajustes email={email} cats={cats} onChanged={reload} toast={toast.show} />
+        <Ajustes email={email} cats={cats} fechamento={fech} onFechamento={aplicarFechamento} onChanged={reload} toast={toast.show} />
       )}
 
       <LancamentoSheet

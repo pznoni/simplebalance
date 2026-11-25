@@ -247,12 +247,15 @@ button:disabled { opacity: 0.5; cursor: default; }
   border-radius: 10px; padding: 9px 12px; font-size: 16px;
 }
 .row-select { justify-content: space-between; cursor: pointer; }
+/* Valor à direita seguido de uma seta, como nos Ajustes do iOS. */
 .row-select select {
+  appearance: none; -webkit-appearance: none;
   border: 0; outline: 0; background: transparent;
   font-size: 16px; color: var(--text-2);
-  text-align: right; direction: rtl; /* valor encostado à direita, como nos Ajustes do iOS */
-  padding: 8px 0; cursor: pointer;
+  text-align: right; text-align-last: right;
+  margin-left: auto; padding: 8px 0; cursor: pointer;
 }
+.row-select::after { content: "›"; font-size: 22px; line-height: 1; color: var(--text-3); margin-left: 8px; }
 .rows li + li .row-edit::before, .rows li + li .row:not(:has(.status))::before { left: 18px; }
 
 .status {

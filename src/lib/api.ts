@@ -86,7 +86,8 @@ export async function copiarFixosDoMesAnterior(ym: string): Promise<number> {
     valor: l.valor,
     valor_real: null,
     descricao: l.descricao,
-    data: dateInMonth(ym, Number(l.data.slice(8, 10))),
+    // Mesma posição no ciclo, um mês depois (com fechamento 20, 25/out vira 25/nov).
+    data: dateInMonth(addMonths(l.data.slice(0, 7), 1), Number(l.data.slice(8, 10))),
     categoria_id: l.categoria_id,
     pagamento: l.pagamento,
     resolvido: false,
