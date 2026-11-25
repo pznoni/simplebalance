@@ -59,14 +59,14 @@ isOneToOne: false
                   ]
                 },"preferencias": {
                   Row: {
-                    "dia_fechamento": number | null,"updated_at": string,"user_id": string
+                    "dia_fechamento": number | null,"renda_mensal": number | null,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "dia_fechamento"?: number | null,"updated_at"?: string,"user_id"?: string
+                    "dia_fechamento"?: number | null,"renda_mensal"?: number | null,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "dia_fechamento"?: number | null,"updated_at"?: string,"user_id"?: string
+                    "dia_fechamento"?: number | null,"renda_mensal"?: number | null,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     

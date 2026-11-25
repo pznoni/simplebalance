@@ -1,6 +1,7 @@
 import { currentMonth, monthTitle } from '../lib/dates';
 import { porCategoria, resumo } from '../lib/calc';
 import { usePrivacy } from '../lib/privacy';
+import { useRenda } from '../lib/prefs';
 import type { Categoria, Lancamento, Tipo } from '../lib/types';
 import { Bar, EyeToggle, PrevReal, ThemeToggle } from '../components/ui';
 import { go, goCategoria } from '../lib/nav';
@@ -20,6 +21,7 @@ export function Inicio({ month, setMonth, lancs, cats, loading }: Props) {
   const categorias = porCategoria(lancs, cats);
   const maxCat = categorias[0]?.valor ?? 0;
   const { money } = usePrivacy();
+  const renda = useRenda();
 
   return (
     <main className={`page ${loading ? 'is-loading' : ''}`}>
@@ -75,6 +77,22 @@ export function Inicio({ month, setMonth, lancs, cats, loading }: Props) {
             {total.previsao === 0 ? 'Nada lançado neste mês.' : `Faltam ${money(total.falta)} cair/pagar`}
           </p>
         )}
+        {renda != null ? (
+          <div className="sobra">
+            <div className="sobra-head">
+              <span>Renda</span>
+              <span className="num">{money(renda)}</span>
+            </div>
+            <div className="prev-real is-compact">
+              <Sobra label="Sobra prevista" valor={renda - total.previsao} />
+              <Sobra label="Sobra real" valor={renda - total.real} />
+            </div>
+          </div>
+        ) : (
+          <button type="button" className="link sobra-link" onClick={() => go('#/ajustes')}>
+            Informar renda para ver quanto sobra
+          </button>
+        )}
       </section>
 
       <TipoCard tipo="fixo" titulo="Fixo" r={fixo} />
@@ -122,5 +140,16 @@ function TipoCard({ tipo, titulo, r }: { tipo: Tipo; titulo: string; r: ReturnTy
       </div>
       <PrevReal previsao={r.previsao} real={r.real} compact />
     </button>
+  );
+}
+
+/** Sobra = renda − despesas; negativo fica em destaque. */
+function Sobra({ label, valor }: { label: string; valor: number }) {
+  const { money } = usePrivacy();
+  return (
+    <div className="stat">
+      <span className="stat-label">{label}</span>
+      <span className={`stat-value ${valor < 0 ? 'is-neg' : ''}`}>{money(valor)}</span>
+    </div>
   );
 }

@@ -2,7 +2,8 @@ import { useState } from 'react';
 import * as api from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { todayISO } from '../lib/dates';
-import { salvarFechamento } from '../lib/prefs';
+import { salvarFechamento, salvarRenda, useRenda } from '../lib/prefs';
+import { formatBRL, parseMoney } from '../lib/money';
 import { go } from '../lib/nav';
 import type { Categoria } from '../lib/types';
 import { BackHeader } from '../components/ui';
@@ -29,6 +30,26 @@ export function Ajustes({ email, cats, fechamento = null, onFechamento = () => {
       toast((err as Error).message, 'error');
     } finally {
       setSavingFech(false);
+    }
+  };
+  // Renda mensal: edita como texto e salva ao sair do campo (ou Enter).
+  const renda = useRenda();
+  const [rendaTxt, setRendaTxt] = useState<string | null>(null); // null = mostrando o valor salvo
+  const salvarRendaTxt = async () => {
+    if (rendaTxt === null) return;
+    const txt = rendaTxt.trim();
+    const valor = txt === '' ? null : parseMoney(txt);
+    if (valor !== null && !(valor >= 0)) {
+      toast('Valor da renda inválido.', 'error');
+      return;
+    }
+    setRendaTxt(null);
+    if (valor === renda) return;
+    try {
+      await salvarRenda(valor);
+      toast(valor === null ? 'Renda removida.' : 'Renda salva.');
+    } catch (err) {
+      toast((err as Error).message, 'error');
     }
   };
   const [nova, setNova] = useState('');
@@ -112,12 +133,29 @@ export function Ajustes({ email, cats, fechamento = null, onFechamento = () => {
               </select>
             </label>
           </li>
+          <li>
+            <label className="row row-edit row-input">
+              <span className="row-title">Renda mensal</span>
+              <input
+                className="renda-input num"
+                inputMode="decimal"
+                placeholder="R$ 0,00"
+                aria-label="Renda mensal"
+                value={rendaTxt ?? (renda != null ? formatBRL(renda) : '')}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => setRendaTxt(e.target.value)}
+                onBlur={() => void salvarRendaTxt()}
+                onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+              />
+            </label>
+          </li>
         </ul>
       </section>
       <p className="muted small pad-x">
         {fechamento
           ? `O mês vai do dia ${fechamento + 1} ao dia ${fechamento}. Lançamentos depois do dia ${fechamento} entram no mês seguinte.`
-          : 'O mês vai do dia 1 ao último dia do mês.'}
+          : 'O mês vai do dia 1 ao último dia do mês.'}{' '}
+        A renda mensal é usada para mostrar quanto sobra no Início.
       </p>
 
       <section className="card list-card">
