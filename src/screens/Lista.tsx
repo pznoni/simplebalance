@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react';
 import * as api from '../lib/api';
-import { resumo } from '../lib/calc';
+import { resumo, valorEfetivo } from '../lib/calc';
 import { addMonths, dayHeader, monthName } from '../lib/dates';
 import { formatBRL } from '../lib/money';
 import { PAGAMENTO_LABEL, TIPO_LABEL, statusLabel, type Categoria, type Lancamento, type Tipo } from '../lib/types';
@@ -47,8 +47,8 @@ export function Lista({ tipo, month, lancs, cats, loading, onToggle, onNew, onEd
   const grupos: Grupo[] =
     tipo === 'fixo'
       ? [
-          { key: 'p', titulo: 'Pendentes', itens: visiveis.filter((l) => !l.resolvido).sort(porVencimento) },
-          { key: 'r', titulo: 'Resolvidos', itens: visiveis.filter((l) => l.resolvido).sort(porVencimento) },
+          { key: 'p', titulo: 'Pendentes', itens: visiveis.filter((l) => !l.resolvido).sort(porDescricao) },
+          { key: 'r', titulo: 'Resolvidos', itens: visiveis.filter((l) => l.resolvido).sort(porDescricao) },
         ].filter((g) => g.itens.length)
       : porDia(visiveis);
 
@@ -86,7 +86,7 @@ export function Lista({ tipo, month, lancs, cats, loading, onToggle, onNew, onEd
         <section key={g.key} className="card list-card">
           <header className="list-head">
             <span>{g.titulo}</span>
-            <span className="num">{formatBRL(g.itens.reduce((s, l) => s + l.valor, 0))}</span>
+            <span className="num">{formatBRL(g.itens.reduce((s, l) => s + valorEfetivo(l), 0))}</span>
           </header>
           <ul className="rows">
             {g.itens.map((l) => (
@@ -115,7 +115,14 @@ export function Lista({ tipo, month, lancs, cats, loading, onToggle, onNew, onEd
                         ))}
                     </span>
                   </div>
-                  <span className="row-value num">{formatBRL(l.valor)}</span>
+                  <span className="row-value num">
+                    {formatBRL(valorEfetivo(l))}
+                    {valorEfetivo(l) !== l.valor && (
+                      <span className="row-prev" aria-label={`previsto ${formatBRL(l.valor)}`}>
+                        {formatBRL(l.valor)}
+                      </span>
+                    )}
+                  </span>
                   </button>
                 </div>
               </li>
@@ -140,7 +147,7 @@ export function Lista({ tipo, month, lancs, cats, loading, onToggle, onNew, onEd
   );
 }
 
-const porVencimento = (a: Lancamento, b: Lancamento) => a.data.localeCompare(b.data) || a.descricao.localeCompare(b.descricao, 'pt-BR');
+const porDescricao = (a: Lancamento, b: Lancamento) => a.descricao.localeCompare(b.descricao, 'pt-BR');
 
 /** Variável: blocos por dia, do mais recente para o mais antigo. */
 function porDia(list: Lancamento[]): Grupo[] {

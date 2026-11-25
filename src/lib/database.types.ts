@@ -76,6 +76,7 @@ export type Database = {
           updated_at: string
           user_id: string
           valor: number
+          valor_real: number | null
         }
         Insert: {
           categoria_id?: string | null
@@ -89,6 +90,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           valor: number
+          valor_real?: number | null
         }
         Update: {
           categoria_id?: string | null
@@ -102,6 +104,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           valor?: number
+          valor_real?: number | null
         }
         Relationships: [
           {

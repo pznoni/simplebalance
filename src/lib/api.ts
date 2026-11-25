@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 import { addMonths, dateInMonth, monthRange } from './dates';
 import type { Categoria, Lancamento, NovoLancamento } from './types';
 
-const LANC_COLS = 'id, tipo, valor, descricao, data, categoria_id, pagamento, resolvido, created_at';
+const LANC_COLS = 'id, tipo, valor, valor_real, descricao, data, categoria_id, pagamento, resolvido, created_at';
 const CAT_COLS = 'id, nome, ordem';
 
 export function traduz(msg: string): string {
@@ -62,6 +62,7 @@ export async function copiarFixosDoMesAnterior(ym: string): Promise<number> {
   const novos: NovoLancamento[] = anteriores.map((l) => ({
     tipo: 'fixo',
     valor: l.valor,
+    valor_real: null,
     descricao: l.descricao,
     data: dateInMonth(ym, Number(l.data.slice(8, 10))),
     categoria_id: l.categoria_id,

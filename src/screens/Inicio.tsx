@@ -1,5 +1,5 @@
 import { addMonths, currentMonth, monthTitle } from '../lib/dates';
-import { formatBRL } from '../lib/money';
+import { diffLabel, formatBRL } from '../lib/money';
 import { porCategoria, resumo } from '../lib/calc';
 import type { Categoria, Lancamento, Tipo } from '../lib/types';
 import { Bar, PrevReal } from '../components/ui';
@@ -48,6 +48,9 @@ export function Inicio({ month, setMonth, lancs, cats, loading }: Props) {
               ? 'Tudo já caiu ou foi pago.'
               : `Faltam ${formatBRL(total.falta)} cair/pagar`}
         </p>
+        {total.diferenca !== 0 && (
+          <p className="muted small">Nos já resolvidos, o real ficou {diffLabel(total.diferenca)}.</p>
+        )}
       </section>
 
       <TipoCard tipo="fixo" titulo="Fixo" r={fixo} />
