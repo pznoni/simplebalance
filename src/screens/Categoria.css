@@ -1,0 +1,8 @@
+/* Linha de categoria clicável (Início e Estatísticas) → lançamentos da categoria. */
+.cat-hit {
+  display: block; width: 100%; text-align: left;
+  margin: -6px -8px; padding: 6px 8px; box-sizing: content-box;
+  border-radius: 12px; -webkit-tap-highlight-color: transparent;
+}
+.cat-hit:active { background: var(--fill); }
+.cat-chev { color: var(--text-3); margin-left: 6px; }

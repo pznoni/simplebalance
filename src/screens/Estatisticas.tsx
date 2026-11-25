@@ -6,13 +6,14 @@ import { compararCategorias, diferencas, mediaReal, mesesAte, porMes, variacao }
 import type { Categoria, Lancamento } from '../lib/types';
 import { BackHeader } from '../components/ui';
 import type { ShowToast } from '../components/Toast';
-import { go } from '../lib/nav';
+import { go, goCategoria } from '../lib/nav';
 import './Estatisticas.css';
 
 const N_MESES = 6;
 
 interface Props {
   month: string; // último mês do período (o que está no Início)
+  initialSel?: string; // mês em foco vindo da rota (ao voltar de uma categoria)
   cats: Categoria[];
   toast: ShowToast;
 }
@@ -40,10 +41,15 @@ function Delta({ valor, pct, sufixo }: { valor: string; pct: number | null; sufi
   );
 }
 
-export function Estatisticas({ month, cats, toast }: Props) {
+export function Estatisticas({ month, initialSel, cats, toast }: Props) {
   const { money } = usePrivacy();
   const [lancs, setLancs] = useState<Lancamento[] | null>(null);
-  const [sel, setSel] = useState(month);
+  const [sel, setSelState] = useState(initialSel ?? month);
+  /** Guarda o mês em foco na rota, para voltar nele depois de abrir uma categoria. */
+  const setSel = (ym: string) => {
+    setSelState(ym);
+    history.replaceState(null, '', `#/estatisticas/${ym}`);
+  };
 
   // Busca um mês a mais para comparar o primeiro mostrado com o anterior dele.
   const todos = useMemo(() => mesesAte(month, N_MESES + 1), [month]);
@@ -52,7 +58,7 @@ export function Estatisticas({ month, cats, toast }: Props) {
   useEffect(() => {
     let vivo = true;
     setLancs(null);
-    setSel(month);
+    setSelState((s) => (mesesAte(month, N_MESES).includes(s) ? s : month));
     api
       .listarPeriodo(todos[0]!, month)
       .then((l) => vivo && setLancs(l))
@@ -156,6 +162,7 @@ export function Estatisticas({ month, cats, toast }: Props) {
           <ul className="cat-cmp">
             {categorias.map((c) => (
               <li key={c.id ?? 'none'}>
+                <button type="button" className="cat-hit" onClick={() => goCategoria(c.id, sel, 'estatisticas')}>
                 <div className="cat-cmp-row">
                   <span className="cat-cmp-nome">{c.nome}</span>
                   <span className="cat-cmp-val num">
@@ -167,6 +174,7 @@ export function Estatisticas({ month, cats, toast }: Props) {
                   <span className="hbar"><span className="hbar-fill" style={{ width: `${(c.atual / maxCat) * 100}%` }} /></span>
                   <span className="hbar is-prev"><span className="hbar-fill" style={{ width: `${(c.anterior / maxCat) * 100}%` }} /></span>
                 </div>
+                </button>
               </li>
             ))}
           </ul>

@@ -124,11 +124,13 @@ export function Bar({ value, max, thin = false }: { value: number; max: number; 
 export function BackHeader({
   title,
   onBack,
+  backLabel = 'Início',
   eye = false,
   children,
 }: {
   title: string;
   onBack: () => void;
+  backLabel?: string;
   eye?: boolean;
   children?: ReactNode;
 }) {
@@ -139,7 +141,7 @@ export function BackHeader({
           <svg viewBox="0 0 12 20" aria-hidden="true">
             <path d="M10 2L2 10l8 8" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          Início
+          {backLabel}
         </button>
         <div className="head-actions">
           <ThemeToggle />

@@ -1,9 +1,9 @@
-import { addMonths, currentMonth, monthTitle } from '../lib/dates';
+import { currentMonth, monthTitle } from '../lib/dates';
 import { porCategoria, resumo } from '../lib/calc';
 import { usePrivacy } from '../lib/privacy';
 import type { Categoria, Lancamento, Tipo } from '../lib/types';
 import { Bar, EyeToggle, PrevReal, ThemeToggle } from '../components/ui';
-import { go } from '../lib/nav';
+import { go, goCategoria } from '../lib/nav';
 
 interface Props {
   month: string;
@@ -39,13 +39,26 @@ export function Inicio({ month, setMonth, lancs, cats, loading }: Props) {
         </button>
       </div>
       <header className="month-head">
-        <button type="button" className="month-nav" aria-label="Mês anterior" onClick={() => setMonth(addMonths(month, -1))}>
-          ‹
-        </button>
-        <h1 className="title-xl">{monthTitle(month)}</h1>
-        <button type="button" className="month-nav" aria-label="Próximo mês" onClick={() => setMonth(addMonths(month, 1))}>
-          ›
-        </button>
+        {/* Toque no mês abre o seletor nativo (roleta de mês/ano no iPhone). */}
+        <label className="month-pick">
+          <h1 className="title-xl">{monthTitle(month)}</h1>
+          <svg className="month-pick-chev" viewBox="0 0 12 8" aria-hidden="true">
+            <path d="M1.5 1.5L6 6l4.5-4.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <input
+            type="month"
+            aria-label="Escolher mês"
+            value={month}
+            onClick={(e) => {
+              try {
+                e.currentTarget.showPicker();
+              } catch {
+                /* navegador sem showPicker: abre pelo foco */
+              }
+            }}
+            onChange={(e) => /^\d{4}-\d{2}$/.test(e.target.value) && setMonth(e.target.value)}
+          />
+        </label>
       </header>
       {month !== currentMonth() && (
         <button type="button" className="link today-link" onClick={() => setMonth(currentMonth())}>
@@ -75,11 +88,16 @@ export function Inicio({ month, setMonth, lancs, cats, loading }: Props) {
           <ul className="cat-list">
             {categorias.map((c) => (
               <li key={c.id ?? 'none'}>
-                <div className="cat-row">
-                  <span>{c.nome}</span>
-                  <span className="num">{money(c.valor)}</span>
-                </div>
-                <Bar value={c.valor} max={maxCat} thin />
+                <button type="button" className="cat-hit" onClick={() => goCategoria(c.id, month)}>
+                  <div className="cat-row">
+                    <span>{c.nome}</span>
+                    <span className="num">
+                      {money(c.valor)}
+                      <span className="cat-chev" aria-hidden="true">›</span>
+                    </span>
+                  </div>
+                  <Bar value={c.valor} max={maxCat} thin />
+                </button>
               </li>
             ))}
           </ul>

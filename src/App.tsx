@@ -11,17 +11,29 @@ import { Inicio } from './screens/Inicio';
 import { Lista } from './screens/Lista';
 import { Ajustes } from './screens/Ajustes';
 import { Estatisticas } from './screens/Estatisticas';
+import { Categoria as CategoriaTela } from './screens/Categoria';
 import { LancamentoSheet, type SheetState } from './components/LancamentoSheet';
 import { Toast, useToast } from './components/Toast';
 import { UpdatePrompt } from './components/UpdatePrompt';
 
-type Route = { name: 'inicio' } | { name: 'lista'; tipo: Tipo } | { name: 'ajustes' } | { name: 'estatisticas' };
+type Route =
+  | { name: 'inicio' }
+  | { name: 'lista'; tipo: Tipo }
+  | { name: 'ajustes' }
+  | { name: 'estatisticas'; sel?: string }
+  | { name: 'categoria'; id: string; ym: string; from: 'inicio' | 'estatisticas' };
+
+const YM = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 function parseHash(): Route {
   const h = location.hash.replace(/^#\/?/, '');
   if (h === 'fixo' || h === 'variavel') return { name: 'lista', tipo: h };
   if (h === 'ajustes') return { name: 'ajustes' };
-  if (h === 'estatisticas') return { name: 'estatisticas' };
+  const [p0, p1, p2, p3] = h.split('/');
+  if (p0 === 'estatisticas') return { name: 'estatisticas', sel: p1 && YM.test(p1) ? p1 : undefined };
+  if (p0 === 'categoria' && p1 && /^[\w-]{1,64}$/.test(p1) && p2 && YM.test(p2)) {
+    return { name: 'categoria', id: p1, ym: p2, from: p3 === 'estatisticas' ? 'estatisticas' : 'inicio' };
+  }
   return { name: 'inicio' };
 }
 
@@ -86,6 +98,7 @@ function Shell({ email }: { email: string }) {
   const [lancs, setLancs] = useState<Lancamento[] | null>(null);
   const [cats, setCats] = useState<Categoria[]>([]);
   const [sheet, setSheet] = useState<SheetState>(null);
+  const [version, setVersion] = useState(0); // avisa telas com busca própria que algo foi salvo
   const toast = useToast();
 
   useEffect(() => {
@@ -179,7 +192,19 @@ function Shell({ email }: { email: string }) {
           toast={toast.show}
         />
       )}
-      {route.name === 'estatisticas' && <Estatisticas month={month} cats={cats} toast={toast.show} />}
+      {route.name === 'estatisticas' && <Estatisticas month={month} initialSel={route.sel} cats={cats} toast={toast.show} />}
+      {route.name === 'categoria' && (
+        <CategoriaTela
+          catId={route.id}
+          ym={route.ym}
+          from={route.from}
+          cats={cats}
+          version={version}
+          onEdit={(l) => setSheet({ tipo: l.tipo, editing: l })}
+          onChanged={() => void reload()}
+          toast={toast.show}
+        />
+      )}
       {route.name === 'ajustes' && (
         <Ajustes email={email} cats={cats} fechamento={fech} onFechamento={aplicarFechamento} onChanged={reload} toast={toast.show} />
       )}
@@ -191,6 +216,7 @@ function Shell({ email }: { email: string }) {
         onClose={() => setSheet(null)}
         onSaved={() => {
           setSheet(null);
+          setVersion((v) => v + 1);
           void reload();
         }}
         onCatsChanged={setCats}
