@@ -40,6 +40,9 @@ export function setTheme(t: Theme) {
   apply(t);
 }
 
+// Aplica já na carga (rede de segurança, caso o theme-init.js não tenha rodado).
+apply(current());
+
 mq.addEventListener('change', () => {
   if (!saved()) apply(system());
 });
