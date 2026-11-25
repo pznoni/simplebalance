@@ -5,8 +5,9 @@ import { traduz } from '../lib/api';
 /** E-mail e senha (link mágico abre o Safari e não o app instalado no iPhone). */
 export function Login() {
   const [mode, setMode] = useState<'entrar' | 'criar'>('entrar');
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
+  // No `npm run dev`, preenche com a conta de teste do .env.development.local.
+  const [email, setEmail] = useState(import.meta.env.DEV ? (import.meta.env.VITE_DEV_EMAIL ?? '') : '');
+  const [senha, setSenha] = useState(import.meta.env.DEV ? (import.meta.env.VITE_DEV_PASSWORD ?? '') : '');
   const [erro, setErro] = useState('');
   const [busy, setBusy] = useState(false);
 
