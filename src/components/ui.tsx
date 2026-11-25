@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { usePrivacy } from '../lib/privacy';
+import { useTheme } from '../lib/theme';
 
 export function Segmented<T extends string>({
   value,
@@ -72,6 +73,26 @@ export function EyeToggle() {
   );
 }
 
+/** Sol/lua: alterna entre modo claro e escuro (sem escolha, segue o sistema). */
+export function ThemeToggle() {
+  const { theme, toggle } = useTheme();
+  const dark = theme === 'dark';
+  return (
+    <button type="button" className="eye" aria-label={dark ? 'Usar modo claro' : 'Usar modo escuro'} onClick={toggle}>
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        {dark ? (
+          <>
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" />
+          </>
+        ) : (
+          <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />
+        )}
+      </svg>
+    </button>
+  );
+}
+
 /** Par Previsão / Real lado a lado. */
 export function PrevReal({ previsao, real, compact = false }: { previsao: number; real: number; compact?: boolean }) {
   const { money } = usePrivacy();
@@ -120,7 +141,10 @@ export function BackHeader({
           </svg>
           Início
         </button>
-        {eye && <EyeToggle />}
+        <div className="head-actions">
+          <ThemeToggle />
+          {eye && <EyeToggle />}
+        </div>
       </div>
       <h1 className="title-xl">{title}</h1>
       {children}
