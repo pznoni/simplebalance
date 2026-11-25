@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import * as api from '../lib/api';
-import { currentMonth, todayISO } from '../lib/dates';
+import { currentMonth, periodOf, todayISO } from '../lib/dates';
 import { centsToInput, diffLabel, formatBRL, parseMoney } from '../lib/money';
 import type { Categoria, Lancamento, Pagamento, Tipo } from '../lib/types';
 import { Sheet } from './Sheet';
@@ -100,7 +100,7 @@ function Form({
     if (!(cents > 0)) return setErro('Digite um valor maior que zero.');
     if (!descricao.trim()) return setErro('Digite uma descrição.');
     // Fixo não mostra data: novo entra no mês em exibição; editado mantém a data que tinha.
-    const dataFinal = tipo === 'fixo' && !e && data.slice(0, 7) !== month ? defaultDate(month) : data;
+    const dataFinal = tipo === 'fixo' && !e && periodOf(data) !== month ? defaultDate(month) : data;
     if (!dataFinal) return setErro('Escolha a data.');
     if (resolvido && valorReal.trim() !== '' && !(realCents > 0)) return setErro('Valor real inválido. Deixe vazio se foi igual ao previsto.');
     // Vazio ou igual ao previsto: não guarda (vale o previsto).
@@ -112,7 +112,7 @@ function Form({
         { tipo, valor: cents, valor_real, descricao: descricao.trim(), data: dataFinal, categoria_id: categoriaId, pagamento, resolvido },
         e?.id,
       );
-      if (dataFinal.slice(0, 7) !== month) toast(`Salvo em ${dataFinal.slice(8, 10)}/${dataFinal.slice(5, 7)}, fora do mês em exibição.`);
+      if (periodOf(dataFinal) !== month) toast(`Salvo em ${dataFinal.slice(8, 10)}/${dataFinal.slice(5, 7)}, fora do mês em exibição.`);
       onSaved();
     } catch (err) {
       setErro((err as Error).message);

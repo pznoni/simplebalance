@@ -15,7 +15,30 @@ export function toISO(d: Date): string {
 }
 
 export const todayISO = () => toISO(new Date());
-export const currentMonth = () => todayISO().slice(0, 7);
+
+// ---------- Dia de fechamento ----------
+// Com fechamento no dia F, o "mês" do app é um ciclo: "Novembro" vai de (F+1)/out até F/nov.
+// Sem fechamento (null), é o mês do calendário. Vem das preferências do usuário (App.tsx).
+let fechamento: number | null = null;
+
+export function setFechamento(dia: number | null): void {
+  fechamento = dia != null && Number.isInteger(dia) && dia >= 1 && dia <= 31 ? dia : null;
+}
+export const getFechamento = () => fechamento;
+
+/** Último dia do ciclo `ym` (o fechamento, limitado ao tamanho do mês). */
+function cycleEnd(ym: string): string {
+  return fechamento ? dateInMonth(ym, fechamento) : `${ym}-${pad(daysInMonth(ym))}`;
+}
+
+/** Mês (ciclo) a que uma data pertence: "2026-11-22" com fechamento 20 → "2026-12". */
+export function periodOf(iso: string): string {
+  const ym = iso.slice(0, 7);
+  return iso > cycleEnd(ym) ? addMonths(ym, 1) : ym;
+}
+
+/** Mês (ciclo) em andamento hoje. */
+export const currentMonth = () => periodOf(todayISO());
 
 export function addMonths(ym: string, n: number): string {
   const [y, m] = parts(ym);
@@ -33,9 +56,14 @@ export function dateInMonth(ym: string, day: number): string {
   return `${ym}-${pad(Math.min(Math.max(1, day), daysInMonth(ym)))}`;
 }
 
-/** Primeiro e último dia do mês, para filtrar no banco. */
+/** Primeiro e último dia do mês (ciclo), para filtrar no banco. */
 export function monthRange(ym: string): { from: string; to: string } {
-  return { from: `${ym}-01`, to: `${ym}-${pad(daysInMonth(ym))}` };
+  return { from: addDays(cycleEnd(addMonths(ym, -1)), 1), to: cycleEnd(ym) };
+}
+
+export function addDays(iso: string, n: number): string {
+  const [y, m, d] = parts(iso);
+  return toISO(new Date(y, m - 1, d + n));
 }
 
 export function monthName(ym: string): string {

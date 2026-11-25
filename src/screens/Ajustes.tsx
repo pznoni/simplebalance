@@ -2,6 +2,7 @@ import { useState } from 'react';
 import * as api from '../lib/api';
 import { supabase } from '../lib/supabase';
 import { todayISO } from '../lib/dates';
+import { salvarFechamento } from '../lib/prefs';
 import { go } from '../lib/nav';
 import type { Categoria } from '../lib/types';
 import { BackHeader } from '../components/ui';
@@ -10,11 +11,26 @@ import type { ShowToast } from '../components/Toast';
 interface Props {
   email: string;
   cats: Categoria[];
+  fechamento?: number | null;
+  onFechamento?: (dia: number | null) => void;
   onChanged: () => Promise<void>;
   toast: ShowToast;
 }
 
-export function Ajustes({ email, cats, onChanged, toast }: Props) {
+export function Ajustes({ email, cats, fechamento = null, onFechamento = () => {}, onChanged, toast }: Props) {
+  const [savingFech, setSavingFech] = useState(false);
+  const mudarFechamento = async (dia: number | null) => {
+    setSavingFech(true);
+    try {
+      await salvarFechamento(dia);
+      onFechamento(dia);
+      toast(dia ? `Fechamento no dia ${dia}.` : 'Mês do calendário.');
+    } catch (err) {
+      toast((err as Error).message, 'error');
+    } finally {
+      setSavingFech(false);
+    }
+  };
   const [nova, setNova] = useState('');
   const [editing, setEditing] = useState<{ id: string; nome: string } | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -76,6 +92,33 @@ export function Ajustes({ email, cats, onChanged, toast }: Props) {
   return (
     <main className="page">
       <BackHeader title="Ajustes" onBack={() => go('#/')} />
+
+      <section className="card list-card">
+        <ul className="rows">
+          <li>
+            <label className="row row-edit row-select">
+              <span className="row-title">Dia de fechamento</span>
+              <select
+                value={fechamento ?? ''}
+                disabled={savingFech}
+                onChange={(e) => void mudarFechamento(e.target.value ? Number(e.target.value) : null)}
+              >
+                <option value="">Fim do mês</option>
+                {Array.from({ length: 30 }, (_, i) => i + 1).map((d) => (
+                  <option key={d} value={d}>
+                    Dia {d}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </li>
+        </ul>
+      </section>
+      <p className="muted small pad-x">
+        {fechamento
+          ? `O mês vai do dia ${fechamento + 1} ao dia ${fechamento}. Lançamentos depois do dia ${fechamento} entram no mês seguinte.`
+          : 'O mês vai do dia 1 ao último dia do mês.'}
+      </p>
 
       <section className="card list-card">
         <header className="list-head">
