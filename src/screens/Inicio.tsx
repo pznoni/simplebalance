@@ -79,10 +79,6 @@ export function Inicio({ month, setMonth, lancs, cats, loading }: Props) {
         )}
         {renda != null ? (
           <div className="sobra">
-            <div className="sobra-head">
-              <span>Renda</span>
-              <span className="num">{money(renda)}</span>
-            </div>
             <div className="prev-real is-compact">
               <Sobra label="Sobra prevista" valor={renda - total.previsao} />
               <Sobra label="Sobra real" valor={renda - total.real} />

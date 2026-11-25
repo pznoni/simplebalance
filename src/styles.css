@@ -465,7 +465,6 @@ body.has-sheet .toast { bottom: auto; top: calc(var(--safe-top) + 12px); }
 
 /* ---------- Renda e sobra (Início e Ajustes) ---------- */
 .sobra { display: flex; flex-direction: column; gap: 10px; padding-top: 14px; border-top: 0.5px solid var(--separator); }
-.sobra-head { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; color: var(--text-2); }
 .stat-value.is-neg { color: var(--alert); }
 .sobra-link { align-self: flex-start; padding: 0; font-size: 15px; color: var(--text-2); }
 .row-input { justify-content: space-between; cursor: text; }
