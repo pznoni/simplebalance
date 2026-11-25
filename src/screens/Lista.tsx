@@ -2,7 +2,7 @@ import { Fragment, useState } from 'react';
 import * as api from '../lib/api';
 import { resumo, valorEfetivo } from '../lib/calc';
 import { addMonths, dayHeader, monthName } from '../lib/dates';
-import { formatBRL } from '../lib/money';
+import { usePrivacy } from '../lib/privacy';
 import { PAGAMENTO_LABEL, TIPO_LABEL, statusLabel, type Categoria, type Lancamento, type Tipo } from '../lib/types';
 import { BackHeader, PrevReal, Segmented, StatusCircle } from '../components/ui';
 import type { ShowToast } from '../components/Toast';
@@ -38,6 +38,7 @@ export function Lista({ tipo, month, lancs, cats, loading, onToggle, onNew, onEd
   const [filtro, setFiltro] = useState<Filtro>('todos');
   const [copying, setCopying] = useState(false);
   const r = resumo(lancs);
+  const { money } = usePrivacy();
   const catNome = new Map(cats.map((c) => [c.id, c.nome]));
 
   const visiveis = lancs.filter((l) =>
@@ -70,7 +71,7 @@ export function Lista({ tipo, month, lancs, cats, loading, onToggle, onNew, onEd
 
   return (
     <main className={`page ${loading ? 'is-loading' : ''}`}>
-      <BackHeader title={TIPO_LABEL[tipo]} onBack={() => go('#/')} />
+      <BackHeader title={TIPO_LABEL[tipo]} onBack={() => go('#/')} eye />
 
       <section className="card">
         <PrevReal previsao={r.previsao} real={r.real} compact />
@@ -86,7 +87,7 @@ export function Lista({ tipo, month, lancs, cats, loading, onToggle, onNew, onEd
         <section key={g.key} className="card list-card">
           <header className="list-head">
             <span>{g.titulo}</span>
-            <span className="num">{formatBRL(g.itens.reduce((s, l) => s + valorEfetivo(l), 0))}</span>
+            <span className="num">{money(g.itens.reduce((s, l) => s + valorEfetivo(l), 0))}</span>
           </header>
           <ul className="rows">
             {g.itens.map((l) => (
@@ -116,10 +117,10 @@ export function Lista({ tipo, month, lancs, cats, loading, onToggle, onNew, onEd
                     </span>
                   </div>
                   <span className="row-value num">
-                    {formatBRL(valorEfetivo(l))}
+                    {money(valorEfetivo(l))}
                     {valorEfetivo(l) !== l.valor && (
-                      <span className="row-prev" aria-label={`previsto ${formatBRL(l.valor)}`}>
-                        {formatBRL(l.valor)}
+                      <span className="row-prev" aria-label={`previsto ${money(l.valor)}`}>
+                        {money(l.valor)}
                       </span>
                     )}
                   </span>

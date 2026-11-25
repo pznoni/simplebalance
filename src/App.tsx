@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import { configured, supabase } from './lib/supabase';
 import * as api from './lib/api';
 import { currentMonth } from './lib/dates';
+import { PrivacyProvider } from './lib/privacy';
 import type { Categoria, Lancamento, Tipo } from './lib/types';
 import { Login } from './screens/Login';
 import { Inicio } from './screens/Inicio';
@@ -63,7 +64,11 @@ function Root() {
   }
   if (session === undefined) return <main className="center-screen" />;
   if (!session) return <Login />;
-  return <Shell key={session.user.id} email={session.user.email ?? ''} />;
+  return (
+    <PrivacyProvider key={session.user.id}>
+      <Shell email={session.user.email ?? ''} />
+    </PrivacyProvider>
+  );
 }
 
 function Shell({ email }: { email: string }) {

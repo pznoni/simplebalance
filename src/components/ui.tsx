@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { formatBRL } from '../lib/money';
+import { usePrivacy } from '../lib/privacy';
 
 export function Segmented<T extends string>({
   value,
@@ -52,18 +52,39 @@ export function StatusCircle({ on, label, onClick }: { on: boolean; label: strin
   );
 }
 
+/** Botão de olho: mostra/oculta os valores do app. */
+export function EyeToggle() {
+  const { hidden, toggle } = usePrivacy();
+  return (
+    <button
+      type="button"
+      className="eye"
+      aria-pressed={!hidden}
+      aria-label={hidden ? 'Mostrar valores' : 'Ocultar valores'}
+      onClick={toggle}
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+        <circle cx="12" cy="12" r="3" />
+        {hidden && <path d="M4 4l16 16" />}
+      </svg>
+    </button>
+  );
+}
+
 /** Par Previsão / Real lado a lado. */
 export function PrevReal({ previsao, real, compact = false }: { previsao: number; real: number; compact?: boolean }) {
+  const { money } = usePrivacy();
   return (
     <div className={`prev-real ${compact ? 'is-compact' : ''}`}>
       <div className="stat">
         <span className="stat-label">Previsão</span>
-        <span className="stat-value">{formatBRL(previsao)}</span>
+        <span className="stat-value">{money(previsao)}</span>
         {!compact && <span className="stat-hint">tudo lançado</span>}
       </div>
       <div className="stat">
         <span className="stat-label">Real</span>
-        <span className="stat-value">{formatBRL(real)}</span>
+        <span className="stat-value">{money(real)}</span>
         {!compact && <span className="stat-hint">já caiu</span>}
       </div>
     </div>
@@ -79,15 +100,28 @@ export function Bar({ value, max, thin = false }: { value: number; max: number; 
   );
 }
 
-export function BackHeader({ title, onBack, children }: { title: string; onBack: () => void; children?: ReactNode }) {
+export function BackHeader({
+  title,
+  onBack,
+  eye = false,
+  children,
+}: {
+  title: string;
+  onBack: () => void;
+  eye?: boolean;
+  children?: ReactNode;
+}) {
   return (
     <header className="page-head">
-      <button type="button" className="back" onClick={onBack}>
-        <svg viewBox="0 0 12 20" aria-hidden="true">
-          <path d="M10 2L2 10l8 8" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        Início
-      </button>
+      <div className="page-head-bar">
+        <button type="button" className="back" onClick={onBack}>
+          <svg viewBox="0 0 12 20" aria-hidden="true">
+            <path d="M10 2L2 10l8 8" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Início
+        </button>
+        {eye && <EyeToggle />}
+      </div>
       <h1 className="title-xl">{title}</h1>
       {children}
     </header>

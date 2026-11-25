@@ -1,8 +1,8 @@
 import { addMonths, currentMonth, monthTitle } from '../lib/dates';
-import { diffLabel, formatBRL } from '../lib/money';
 import { porCategoria, resumo } from '../lib/calc';
+import { usePrivacy } from '../lib/privacy';
 import type { Categoria, Lancamento, Tipo } from '../lib/types';
-import { Bar, PrevReal } from '../components/ui';
+import { Bar, EyeToggle, PrevReal } from '../components/ui';
 import { go } from '../lib/nav';
 
 interface Props {
@@ -19,9 +19,14 @@ export function Inicio({ month, setMonth, lancs, cats, loading }: Props) {
   const variavel = resumo(lancs.filter((l) => l.tipo === 'variavel'));
   const categorias = porCategoria(lancs, cats);
   const maxCat = categorias[0]?.valor ?? 0;
+  const { money } = usePrivacy();
+  const diff = total.diferenca;
 
   return (
     <main className={`page ${loading ? 'is-loading' : ''}`}>
+      <div className="top-bar">
+        <EyeToggle />
+      </div>
       <header className="month-head">
         <button type="button" className="month-nav" aria-label="Mês anterior" onClick={() => setMonth(addMonths(month, -1))}>
           ‹
@@ -46,10 +51,12 @@ export function Inicio({ month, setMonth, lancs, cats, loading }: Props) {
             ? 'Nada lançado neste mês.'
             : total.falta === 0
               ? 'Tudo já caiu ou foi pago.'
-              : `Faltam ${formatBRL(total.falta)} cair/pagar`}
+              : `Faltam ${money(total.falta)} cair/pagar`}
         </p>
-        {total.diferenca !== 0 && (
-          <p className="muted small">Nos já resolvidos, o real ficou {diffLabel(total.diferenca)}.</p>
+        {diff !== 0 && (
+          <p className="muted small">
+            Nos já resolvidos, o real ficou {money(Math.abs(diff))} {diff < 0 ? 'abaixo' : 'acima'} do previsto.
+          </p>
         )}
       </section>
 
@@ -66,7 +73,7 @@ export function Inicio({ month, setMonth, lancs, cats, loading }: Props) {
               <li key={c.id ?? 'none'}>
                 <div className="cat-row">
                   <span>{c.nome}</span>
-                  <span className="num">{formatBRL(c.valor)}</span>
+                  <span className="num">{money(c.valor)}</span>
                 </div>
                 <Bar value={c.valor} max={maxCat} thin />
               </li>
