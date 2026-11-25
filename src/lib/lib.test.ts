@@ -3,6 +3,7 @@ import { parseMoney, formatBRL, centsToInput, diffLabel } from './money';
 import { addMonths, dateInMonth, dayHeader, monthRange, monthTitle } from './dates';
 import { porCategoria, resumo, valorEfetivo } from './calc';
 import { statusLabel, type Lancamento } from './types';
+import { compararCategorias, diferencas, mediaReal, mesesAte, porMes, variacao } from './stats';
 
 const l = (p: Partial<Lancamento>): Lancamento => ({
   id: Math.random().toString(36),
@@ -84,5 +85,54 @@ describe('calc', () => {
     expect(statusLabel({ pagamento: 'credito', resolvido: false })).toBe('a cair');
     expect(statusLabel({ pagamento: 'debito', resolvido: true })).toBe('pago');
     expect(statusLabel({ pagamento: 'debito', resolvido: false })).toBe('a pagar');
+  });
+});
+
+describe('estatísticas', () => {
+  const cats = [{ id: 'm', nome: 'Mercado', ordem: 1 }, { id: 'c', nome: 'Casa', ordem: 2 }];
+  const list = [
+    l({ data: '2026-10-05', valor: 10000, categoria_id: 'm', resolvido: true }),
+    l({ data: '2026-10-10', valor: 50000, tipo: 'fixo', categoria_id: 'c', resolvido: true }),
+    l({ data: '2026-11-03', valor: 12000, valor_real: 13000, categoria_id: 'm', resolvido: true }),
+    l({ data: '2026-11-10', valor: 50000, tipo: 'fixo', categoria_id: 'c', resolvido: true }),
+    l({ data: '2026-11-20', valor: 2000 }), // pendente, sem categoria
+    l({ data: '2026-08-01', valor: 999 }), // fora do período
+  ];
+
+  it('meses até o mês escolhido, atravessando o ano', () => {
+    expect(mesesAte('2027-02', 4)).toEqual(['2026-11', '2026-12', '2027-01', '2027-02']);
+  });
+
+  it('totais por mês: previsto, real, fixo e variável', () => {
+    expect(porMes(list, ['2026-10', '2026-11'])).toEqual([
+      { ym: '2026-10', previsto: 60000, real: 60000, fixo: 50000, variavel: 10000 },
+      { ym: '2026-11', previsto: 64000, real: 63000, fixo: 50000, variavel: 15000 },
+    ]);
+  });
+
+  it('média do real dos outros meses com lançamentos', () => {
+    const meses = porMes(list, ['2026-09', '2026-10', '2026-11']);
+    expect(mediaReal(meses, '2026-11')).toBe(60000); // setembro vazio não entra
+    expect(mediaReal(porMes([], ['2026-11']), '2026-11')).toBeNull();
+  });
+
+  it('variação percentual', () => {
+    expect(variacao(110, 100)).toBe(10);
+    expect(variacao(75, 100)).toBe(-25);
+    expect(variacao(50, 0)).toBeNull();
+  });
+
+  it('categorias: mês vs anterior, pela maior mudança', () => {
+    expect(compararCategorias(list, '2026-11', cats).map((c) => [c.nome, c.atual, c.anterior, c.delta])).toEqual([
+      ['Sem categoria', 2000, 0, 2000],
+      ['Mercado', 13000, 10000, 3000],
+      ['Casa', 50000, 50000, 0],
+    ].sort((a, b) => Math.abs(b[3] as number) - Math.abs(a[3] as number)));
+  });
+
+  it('diferenças previsto × real só dos resolvidos do mês', () => {
+    const d = diferencas(list, '2026-11');
+    expect(d.itens.map((x) => [x.lanc.valor, x.delta])).toEqual([[12000, 1000]]);
+    expect(d).toMatchObject({ total: 1000, resolvidos: 2, exatos: 1 });
   });
 });

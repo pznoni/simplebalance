@@ -38,6 +38,28 @@ export async function listarMes(ym: string): Promise<Lancamento[]> {
   return (data ?? []) as Lancamento[];
 }
 
+const PAGINA = 1000; // limite de linhas por consulta da API (max_rows)
+
+/** Lançamentos de `de` a `ate` (AAAA-MM, inclusive), em páginas para não cortar em 1000. */
+export async function listarPeriodo(de: string, ate: string): Promise<Lancamento[]> {
+  const from = monthRange(de).from;
+  const to = monthRange(ate).to;
+  const todos: Lancamento[] = [];
+  for (let inicio = 0; ; inicio += PAGINA) {
+    const { data, error } = await supabase
+      .from('lancamentos')
+      .select(LANC_COLS)
+      .gte('data', from)
+      .lte('data', to)
+      .order('data')
+      .order('id')
+      .range(inicio, inicio + PAGINA - 1);
+    fail(error);
+    todos.push(...((data ?? []) as Lancamento[]));
+    if (!data || data.length < PAGINA) return todos;
+  }
+}
+
 export async function salvarLancamento(l: NovoLancamento, id?: string): Promise<void> {
   const { error } = id
     ? await supabase.from('lancamentos').update(l).eq('id', id)

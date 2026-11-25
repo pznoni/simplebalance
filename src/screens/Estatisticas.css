@@ -1,0 +1,79 @@
+/* Tela de Estatísticas. Monocromática como o resto do app: a identidade das séries
+   vem sempre com legenda e valores escritos, nunca só pela cor. */
+
+.stats { --stat-prev: var(--chart-2); }
+
+.stats-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+
+.stats-chips {
+  display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+  margin: 0 -16px; padding: 0 16px;
+}
+.stats-chips::-webkit-scrollbar { display: none; }
+.stats-chips .chip { flex: none; }
+
+/* Colunas por mês: trilho = previsto, preenchimento = real. */
+.cols {
+  --cols-label: 22px; /* altura do rótulo + espaço abaixo das colunas */
+  position: relative; height: 150px;
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; align-items: end;
+}
+.col {
+  height: 100%; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  min-width: 0; padding: 0; border-radius: 10px;
+}
+.col-plot { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
+.col-track {
+  position: relative; width: 100%; max-width: 30px; min-height: 4px;
+  background: var(--track); border-radius: 4px 4px 0 0; overflow: hidden;
+}
+.col-fill { position: absolute; left: 0; right: 0; bottom: 0; background: var(--tint); }
+.col-lbl { height: 16px; font-size: 12px; color: var(--text-3); }
+.col.is-sel .col-lbl { color: var(--text); font-weight: 600; }
+.col.is-sel .col-track { outline: 2px solid var(--tint); outline-offset: 2px; }
+.col:active .col-track { transform: scale(0.96); }
+
+.avg-line {
+  position: absolute; left: 0; right: 0; z-index: 1; pointer-events: none;
+  border-top: 1px dashed var(--text-3);
+}
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--text-2); }
+.legend i, .stat-label i {
+  display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px;
+}
+.sw-real { background: var(--tint); }
+.sw-prev { background: var(--track); }
+.sw-prev-strong { background: var(--stat-prev); }
+.sw-avg { height: 0 !important; border-top: 1px dashed var(--text-3); border-radius: 0 !important; vertical-align: 3px !important; }
+
+.delta { font-size: 12px; font-weight: 500; color: var(--text-2); white-space: nowrap; }
+.delta.is-up { color: var(--alert); }
+
+/* Categorias: atual × anterior */
+.cat-cmp { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.cat-cmp-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 6px; }
+.cat-cmp-nome { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cat-cmp-val { flex: none; display: flex; flex-direction: column; align-items: flex-end; white-space: nowrap; }
+.cat-cmp-bars { display: flex; flex-direction: column; gap: 2px; }
+.hbar { display: block; height: 4px; border-radius: 99px; background: var(--track); overflow: hidden; }
+.hbar-fill { display: block; height: 100%; border-radius: 0 4px 4px 0; background: var(--tint); }
+.hbar.is-prev .hbar-fill { background: var(--stat-prev); }
+
+/* Previsto × real */
+.dif-list { list-style: none; margin: 0 -18px; padding: 0; }
+.dif-list li {
+  display: flex; justify-content: space-between; gap: 12px;
+  padding: 11px 18px; border-top: 0.5px solid var(--separator);
+}
+.dif-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.dif-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dif-val { flex: none; display: flex; flex-direction: column; align-items: flex-end; white-space: nowrap; }
+.dif-prev { font-size: 12px; color: var(--text-3); text-decoration: line-through; }
+
+/* Fixo × Variável: uma barra dividida, com 2px entre os segmentos */
+.split { display: flex; gap: 2px; height: 10px; border-radius: 99px; overflow: hidden; }
+.split > span { flex-basis: 0; min-width: 4px; }
+.split-fixo { background: var(--tint); }
+.split-var { background: var(--stat-prev); }
+.split-vazio { flex: 1; background: var(--track); }

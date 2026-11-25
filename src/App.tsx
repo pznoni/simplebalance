@@ -9,16 +9,18 @@ import { Login } from './screens/Login';
 import { Inicio } from './screens/Inicio';
 import { Lista } from './screens/Lista';
 import { Ajustes } from './screens/Ajustes';
+import { Estatisticas } from './screens/Estatisticas';
 import { LancamentoSheet, type SheetState } from './components/LancamentoSheet';
 import { Toast, useToast } from './components/Toast';
 import { UpdatePrompt } from './components/UpdatePrompt';
 
-type Route = { name: 'inicio' } | { name: 'lista'; tipo: Tipo } | { name: 'ajustes' };
+type Route = { name: 'inicio' } | { name: 'lista'; tipo: Tipo } | { name: 'ajustes' } | { name: 'estatisticas' };
 
 function parseHash(): Route {
   const h = location.hash.replace(/^#\/?/, '');
   if (h === 'fixo' || h === 'variavel') return { name: 'lista', tipo: h };
   if (h === 'ajustes') return { name: 'ajustes' };
+  if (h === 'estatisticas') return { name: 'estatisticas' };
   return { name: 'inicio' };
 }
 
@@ -152,6 +154,7 @@ function Shell({ email }: { email: string }) {
           toast={toast.show}
         />
       )}
+      {route.name === 'estatisticas' && <Estatisticas month={month} cats={cats} toast={toast.show} />}
       {route.name === 'ajustes' && (
         <Ajustes email={email} cats={cats} onChanged={reload} toast={toast.show} />
       )}

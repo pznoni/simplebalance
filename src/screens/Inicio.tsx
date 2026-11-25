@@ -2,7 +2,7 @@ import { addMonths, currentMonth, monthTitle } from '../lib/dates';
 import { porCategoria, resumo } from '../lib/calc';
 import { usePrivacy } from '../lib/privacy';
 import type { Categoria, Lancamento, Tipo } from '../lib/types';
-import { Bar, EyeToggle, PrevReal } from '../components/ui';
+import { Bar, EyeToggle, PrevReal, ThemeToggle } from '../components/ui';
 import { go } from '../lib/nav';
 
 interface Props {
@@ -20,11 +20,16 @@ export function Inicio({ month, setMonth, lancs, cats, loading }: Props) {
   const categorias = porCategoria(lancs, cats);
   const maxCat = categorias[0]?.valor ?? 0;
   const { money } = usePrivacy();
-  const diff = total.diferenca;
 
   return (
     <main className={`page ${loading ? 'is-loading' : ''}`}>
       <div className="top-bar">
+        <button type="button" className="eye" aria-label="Estatísticas" onClick={() => go('#/estatisticas')}>
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
+            <path d="M5 20v-8M12 20V5M19 20v-11" />
+          </svg>
+        </button>
+        <ThemeToggle />
         <EyeToggle />
       </div>
       <header className="month-head">
@@ -46,16 +51,9 @@ export function Inicio({ month, setMonth, lancs, cats, loading }: Props) {
         <h2 className="card-title">Total do mês</h2>
         <PrevReal previsao={total.previsao} real={total.real} />
         <Bar value={total.real} max={total.previsao} />
-        <p className="muted small">
-          {total.previsao === 0
-            ? 'Nada lançado neste mês.'
-            : total.falta === 0
-              ? 'Tudo já caiu ou foi pago.'
-              : `Faltam ${money(total.falta)} cair/pagar`}
-        </p>
-        {diff !== 0 && (
+        {(total.previsao === 0 || total.falta > 0) && (
           <p className="muted small">
-            Nos já resolvidos, o real ficou {money(Math.abs(diff))} {diff < 0 ? 'abaixo' : 'acima'} do previsto.
+            {total.previsao === 0 ? 'Nada lançado neste mês.' : `Faltam ${money(total.falta)} cair/pagar`}
           </p>
         )}
       </section>
